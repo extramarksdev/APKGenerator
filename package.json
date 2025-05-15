@@ -1,0 +1,51 @@
+{
+  "name": "apkgen",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "start:server": "node --loader ts-node/esm server/server.ts",
+    "start": "concurrently -n 'FRONTEND,BACKEND' -c 'bgBlue.bold,bgGreen.bold' \"vite\" \"node --loader ts-node/esm server/server.ts\"",
+    "build": "vite build && tsc -p server/tsconfig.json",
+    "prod": "yarn build && NODE_ENV=production node server/dist/server.js"
+  },
+  "dependencies": {
+    "child_process": "1.0.2",
+    "cors": "2.8.5",
+    "express": "5.1.0",
+    "fs-extra": "11.3.0",
+    "multer": "1.4.5-lts.2",
+    "path": "0.12.7",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "replace-in-file": "8.3.0",
+    "sass": "1.88.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.25.0",
+    "@types/cors": "2.8.17",
+    "@types/express": "5.0.1",
+    "@types/fs-extra": "11.0.4",
+    "@types/multer": "1.4.12",
+    "@types/node": "22.15.17",
+    "@types/react": "19.1.2",
+    "@types/react-dom": "19.1.2",
+    "@vitejs/plugin-react": "4.4.1",
+    "concurrently": "9.1.2",
+    "eslint": "9.25.0",
+    "eslint-plugin-react-hooks": "5.2.0",
+    "eslint-plugin-react-refresh": "0.4.19",
+    "globals": "16.0.0",
+    "ts-node": "10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "5.8.3",
+    "typescript-eslint": "8.30.1",
+    "vite": "6.3.5"
+  },
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true
+  }
+}
