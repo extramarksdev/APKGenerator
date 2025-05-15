@@ -22,7 +22,7 @@ export const useApkGenerator = () => {
     setStatus({ type: null, message: "Generating APK..." });
 
     try {
-      const response = await fetch("http://localhost:3000/generate-apk", {
+      const response = await fetch("http://localhost:8888/generate-apk", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

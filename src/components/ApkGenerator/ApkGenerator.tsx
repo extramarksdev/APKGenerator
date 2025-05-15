@@ -102,7 +102,7 @@ const APKGenerator = () => {
             {status.downloadUrl ? (
               <p>
                 {status.message}{" "}
-                <a href={`http://localhost:3000${status.downloadUrl}`} download>
+                <a href={`http://localhost:8888${status.downloadUrl}`} download>
                   Download APK
                 </a>
               </p>
