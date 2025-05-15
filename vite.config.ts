@@ -10,7 +10,11 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/generate-apk': 'http://localhost:5173',
+      '/generate-apk': {
+        target: 'http://localhost:8888',
+        changeOrigin: true,
+        secure: false,
+      }
     },
   },
   css: {

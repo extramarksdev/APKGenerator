@@ -9,6 +9,7 @@ import * as replace from "replace-in-file";
 import { fileURLToPath } from "url";
 import cors from "cors";
 import { dirname } from "path";
+import sharp from "sharp";
 
 process.on("uncaughtException", (err) => {
   console.error("Uncaught Exception:", err);
@@ -35,6 +36,7 @@ app.use(
     origin: ["http://localhost:5173", "http://localhost:8888"],
     methods: "GET, POST, PUT, DELETE",
     allowedHeaders: "Content-Type, X-Requested-With",
+    credentials: true
   })
 );
 
@@ -42,25 +44,47 @@ const upload = multer();
 
 app.post(
   "/generate-apk",
-  upload.none(),
+  upload.single('icon'),
   async (req: Request, res: Response) => {
     const { packageName, appName, webViewUrl } = req.body;
+    const iconFile = req.file;
 
     if (!packageName || !appName || !webViewUrl) {
       res.status(400).json({ error: "Missing required fields" });
       return;
     }
 
-    // Clear the entire build directory before starting
     await fs.emptyDir(BUILD_DIR);
 
-    // Use a fixed directory name instead of timestamp
     const projectDir = path.join(BUILD_DIR, "current_build");
 
     console.log("Generating APK with:", { packageName, appName, webViewUrl });
 
     try {
       await fs.copy(TEMPLATE_DIR, projectDir);
+
+      if (iconFile) {
+        const iconBuffer = await sharp(iconFile.buffer)
+          .resize(512, 512)
+          .toFormat('png')
+          .toBuffer();
+
+        const drawablePath = path.join(
+          projectDir,
+          'app',
+          'src',
+          'main',
+          'res',
+          'drawable'
+        );
+
+        await fs.ensureDir(drawablePath);
+        
+        await fs.writeFile(
+          path.join(drawablePath, 'ic_launcher.png'),
+          iconBuffer
+        );
+      }
 
       const manifestPath = path.join(
         projectDir,
@@ -202,7 +226,6 @@ app.post(
   }
 );
 
-// Serve all folders inside /build for apk download
 app.use("/apk", express.static(BUILD_DIR));
 
 app.get("/", (req: Request, res: Response) => {

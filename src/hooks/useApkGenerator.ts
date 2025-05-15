@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios, { AxiosProgressEvent } from "axios";
 
 import {
   StatusType,
@@ -8,53 +9,33 @@ import {
 /** Handles APK generation logic */
 export const useApkGenerator = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [status, setStatus] = useState<StatusType>({
-    type: null,
-    message: "",
-  });
+  const [status, setStatus] = useState({ message: '', type: '', downloadUrl: '' });
 
-  const generateApk = async (formData: {
-    packageName: string;
-    appName: string;
-    webViewUrl: string;
+  const generateApk = async (formData: FormData, options?: {
+    onUploadProgress?: (progressEvent: AxiosProgressEvent) => void
   }) => {
     setIsLoading(true);
-    setStatus({ type: null, message: "Generating APK..." });
-
     try {
-      const response = await fetch("http://localhost:8888/generate-apk", {
-        method: "POST",
+      const response = await axios.post('/generate-apk', formData, {
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'multipart/form-data'
         },
-        body: JSON.stringify(formData),
+        onUploadProgress: options?.onUploadProgress,
+        baseURL: import.meta.env.DEV ? '' : 'http://localhost:8888'
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result: ApkGenerationResult = await response.json();
-
-      if (result.success) {
-        setStatus({
-          type: "success",
-          message: result.message || "APK generated successfully!",
-          downloadUrl: result.downloadUrl,
-        });
-        return result;
-      } else {
-        throw new Error(result.message || "Failed to generate APK");
-      }
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "An unknown error occurred";
-      console.error("APK generation error:", error);
+      
       setStatus({
-        type: "error",
-        message: errorMessage,
+        message: 'APK generated successfully!',
+        type: 'success',
+        downloadUrl: response.data.downloadUrl
       });
-      throw error;
+    } catch (error) {
+      setStatus({
+        message: 'Failed to generate APK',
+        type: 'error',
+        downloadUrl: ''
+      });
+      console.error(error);
     } finally {
       setIsLoading(false);
     }

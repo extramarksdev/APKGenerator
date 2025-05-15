@@ -1,5 +1,5 @@
 /** Third Party Imports */
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useApkGenerator } from "../../hooks/useApkGenerator";
 
 /** Relative Imports */
@@ -13,6 +13,10 @@ const APKGenerator = () => {
     appName: "",
     webViewUrl: "",
   });
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [iconFile, setIconFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   /** Hooks */
   const { generateApk, isLoading, status } = useApkGenerator();
@@ -27,6 +31,63 @@ const APKGenerator = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFileError(null);
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      // Check file type
+      if (file.type !== 'image/png') {
+        setFileError('Only PNG images are allowed');
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        return;
+      }
+
+      // Check image dimensions
+      try {
+        const dimensions = await getImageDimensions(file);
+        if (dimensions.width !== 512 || dimensions.height !== 512) {
+          setFileError('Image must be exactly 512x512 pixels');
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+          return;
+        }
+        setIconFile(file);
+      } catch (error) {
+        setFileError('Failed to read image dimensions');
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
+    }
+  };
+
+  // Helper function to get image dimensions
+  const getImageDimensions = (file: File): Promise<{width: number, height: number}> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      
+      img.onload = () => {
+        resolve({
+          width: img.width,
+          height: img.height
+        });
+        URL.revokeObjectURL(url);
+      };
+      
+      img.onerror = () => {
+        reject(new Error('Failed to load image'));
+        URL.revokeObjectURL(url);
+      };
+      
+      img.src = url;
+    });
+  };
+
   /**
    * Handles form submission for APK generation
    * @param {React.FormEvent} e - The form submission event
@@ -35,10 +96,29 @@ const APKGenerator = () => {
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const formDataObj = new FormData();
+    formDataObj.append('packageName', formData.packageName);
+    formDataObj.append('appName', formData.appName);
+    formDataObj.append('webViewUrl', formData.webViewUrl);
+    
+    if (iconFile) {
+      formDataObj.append('icon', iconFile);
+    }
+
     try {
-      await generateApk(formData);
+      await generateApk(formDataObj, {
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(progress);
+          }
+        }
+      });
     } catch (error) {
       console.log(error);
+    } finally {
+      setUploadProgress(0);
     }
   };
 
@@ -85,6 +165,22 @@ const APKGenerator = () => {
             placeholder="https://example.com"
             required
           />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label htmlFor="appIcon">App Icon (512x512 PNG):</label>
+          <input
+            type="file"
+            id="appIcon"
+            name="appIcon"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept=".png,image/png"
+          />
+          <small>Must be a 512x512 PNG file</small>
+          {fileError && (
+            <div className={styles.errorMessage}>{fileError}</div>
+          )}
         </div>
 
         <div className={styles.formGroup}>

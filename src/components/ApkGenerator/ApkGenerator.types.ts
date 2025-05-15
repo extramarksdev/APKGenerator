@@ -1,12 +1,12 @@
 /** Form inputs for APK generation */
-export type FormData = {
+export interface FormData {
   /** Android package name (e.g. com.example.app) */
   packageName: string;
   /** Display name for the app */
   appName: string;
   /** URL for the WebView to load */
   webViewUrl: string;
-};
+}
 
 /** Current generation state */
 export type StatusType = {
@@ -27,3 +27,7 @@ export type ApkGenerationResult = {
   /** Optional server message */
   message?: string;
 };
+
+export interface ApkGeneratorOptions {
+  onUploadProgress?: (progressEvent: ProgressEvent) => void;
+}
