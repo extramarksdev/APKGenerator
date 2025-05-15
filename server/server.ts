@@ -32,7 +32,7 @@ fs.ensureDirSync(BUILD_DIR);
 app.use(express.static(__dirname));
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:3000"],
+    origin: ["http://localhost:5173", "http://localhost:8888"],
     methods: "GET, POST, PUT, DELETE",
     allowedHeaders: "Content-Type, X-Requested-With",
   })
@@ -210,7 +210,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 const startServer = () => {
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT || 8888;
   const server = app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
