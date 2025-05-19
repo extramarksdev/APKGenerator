@@ -1,33 +1,52 @@
-/** Form inputs for APK generation */
+import { AxiosProgressEvent } from "axios";
+
 export interface FormData {
-  /** Android package name (e.g. com.example.app) */
   packageName: string;
-  /** Display name for the app */
   appName: string;
-  /** URL for the WebView to load */
   webViewUrl: string;
 }
 
-/** Current generation state */
-export type StatusType = {
-  /** success, error, or null (loading) */
-  type: "success" | "error" | null;
-  /** Status message for UI */
+export interface ImageDimensions {
+  width: number;
+  height: number;
+}
+
+export type StatusType = "success" | "error" | "warning" | "info" | "";
+
+export interface HookStatus {
   message: string;
-  /** APK download URL when successful */
+  type: StatusType;
   downloadUrl?: string;
-};
+  keystoreUrl?: string;
+}
 
-/** APK generation status types */
-export type ApkGenerationResult = {
-  /** True if generation succeeded */
+export interface ApiResponse {
   success: boolean;
-  /** APK download URL when successful */
-  downloadUrl?: string;
-  /** Optional server message */
   message?: string;
-};
+  downloadUrl?: string;
+  keystoreUrl?: string;
+  error?: {
+    message: string;
+  };
+  buildType?: string;
+  packageName?: string;
+  appName?: string;
+}
 
-export interface ApkGeneratorOptions {
-  onUploadProgress?: (progressEvent: ProgressEvent) => void;
+export interface GenerateSuccessResult {
+  success: true;
+  downloadUrl: string;
+  keystoreUrl?: string;
+  isReleaseBuild: boolean;
+}
+
+export interface GenerateErrorResult {
+  success: false;
+  error: string;
+}
+
+export type GenerateResult = GenerateSuccessResult | GenerateErrorResult;
+
+export interface GenerateOptions {
+  onUploadProgress?: (progressEvent: AxiosProgressEvent) => void;
 }
